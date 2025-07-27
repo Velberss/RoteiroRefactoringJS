@@ -7,7 +7,8 @@ function gerarFaturaStr (fatura, pecas) {
     const formato = new Intl.NumberFormat("pt-BR",
                           { style: "currency", currency: "BRL",
                             minimumFractionDigits: 2 }).format;
-  
+                            
+  function gerarFaturaStr(fatura, pecas) {
     for (let apre of fatura.apresentacoes) {
       const peca = pecas[apre.id];
       let total = 0;
@@ -43,6 +44,7 @@ function gerarFaturaStr (fatura, pecas) {
     faturaStr += `Créditos acumulados: ${creditos} \n`;
     return faturaStr;
   }
+}
 
 const faturas = JSON.parse(readFileSync('./faturas.json'));
 const pecas = JSON.parse(readFileSync('./pecas.json'));
