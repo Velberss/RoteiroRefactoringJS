@@ -1,78 +1,84 @@
 const { readFileSync } = require('fs');
 
-function gerarFaturaStr(fatura, pecas) {
-  let totalFatura = 0;
-  let creditos = 0;
-  let faturaStr = `Fatura ${fatura.cliente}\n`;
-
-  function getPeca(apresentacao) {
+function getPeca(apresentacao, pecas) {
     return pecas[apresentacao.id];
-  }
+}
 
-  function calcularCredito(apre) {
+function calcularCredito(apre, pecas) { // pecas adicionado como parâmetro
     let creditosDaApresentacao = 0;
     creditosDaApresentacao += Math.max(apre.audiencia - 30, 0);
-    if (getPeca(apre).tipo === "comedia") {
-      creditosDaApresentacao += Math.floor(apre.audiencia / 5);
+    // Ajuste aqui: getPeca precisa de 'pecas'
+    if (getPeca(apre, pecas).tipo === "comedia") {
+        creditosDaApresentacao += Math.floor(apre.audiencia / 5);
     }
     return creditosDaApresentacao;
-  }
+}
 
-  function calcularTotalApresentacao(apre) {
+function calcularTotalApresentacao(apre, pecas) { // pecas adicionado como parâmetro
     let total = 0;
-    switch (getPeca(apre).tipo) {
-      case "tragedia":
-        total = 40000;
-        if (apre.audiencia > 30) {
-          total += 1000 * (apre.audiencia - 30);
-        }
-        break;
-      case "comedia":
-        total = 30000;
-        if (apre.audiencia > 20) {
-          total += 10000 + 500 * (apre.audiencia - 20);
-        }
-        total += 300 * apre.audiencia;
-        break;
-      default:
-        throw new Error(`Peça desconhecia: ${getPeca(apre).tipo}`);
+    // Ajuste aqui: getPeca precisa de 'pecas'
+    switch (getPeca(apre, pecas).tipo) {
+        case "tragedia":
+            total = 40000;
+            if (apre.audiencia > 30) {
+                total += 1000 * (apre.audiencia - 30);
+            }
+            break;
+        case "comedia":
+            total = 30000;
+            if (apre.audiencia > 20) {
+                total += 10000 + 500 * (apre.audiencia - 20);
+            }
+            total += 300 * apre.audiencia;
+            break;
+        default:
+            // Ajuste aqui: getPeca precisa de 'pecas'
+            throw new Error(`Peça desconhecia: ${getPeca(apre, pecas).tipo}`);
     }
     return total;
-  }
+}
 
-  function formatarMoeda(valor) {
+function formatarMoeda(valor) {
     return new Intl.NumberFormat("pt-BR",
-      {
-        style: "currency", currency: "BRL",
-        minimumFractionDigits: 2
-      }).format(valor / 100); // Já divide por 100 aqui
-  }
+        {
+            style: "currency", currency: "BRL",
+            minimumFractionDigits: 2
+        }).format(valor / 100);
+}
 
-  function calcularTotalFatura() {
+function calcularTotalFatura(pecas, apresentacoes) { // pecas e apresentacoes adicionados como parâmetros
     let totalGeral = 0;
-    for (let apre of fatura.apresentacoes) {
-      totalGeral += calcularTotalApresentacao(apre);
+    // Ajuste aqui: usar 'apresentacoes' do parâmetro
+    for (let apre of apresentacoes) {
+        // Ajuste aqui: calcularTotalApresentacao precisa de 'apre' e 'pecas'
+        totalGeral += calcularTotalApresentacao(apre, pecas);
     }
     return totalGeral;
-  }
+}
 
-  function calcularTotalCreditos() {
+function calcularTotalCreditos(pecas, apresentacoes) { // pecas e apresentacoes adicionados como parâmetros
     let creditosGerais = 0;
-    for (let apre of fatura.apresentacoes) {
-      creditosGerais += calcularCredito(apre);
+    // Ajuste aqui: usar 'apresentacoes' do parâmetro
+    for (let apre of apresentacoes) {
+        // Ajuste aqui: calcularCredito precisa de 'apre' e 'pecas'
+        creditosGerais += calcularCredito(apre, pecas);
     }
     return creditosGerais;
-  }
+}
 
-  for (let apre of fatura.apresentacoes) {
-    // Note que só precisamos do 'total' aqui para a linha individual da fatura
-    let total = calcularTotalApresentacao(apre);
-    faturaStr += `   ${getPeca(apre).nome}: ${formatarMoeda(total)} (${apre.audiencia} assentos)\n`;
-  }
-  // As somas totais são feitas pelas novas funções extraídas
-  faturaStr += `Valor total: ${formatarMoeda(calcularTotalFatura())}\n`;
-  faturaStr += `Créditos acumulados: ${calcularTotalCreditos()} \n`;
-  return faturaStr;
+function gerarFaturaStr(fatura, pecas) {
+    let faturaStr = `Fatura ${fatura.cliente}\n`;
+
+    for (let apre of fatura.apresentacoes) {
+        // Chamadas já estão corretas aqui
+        let total = calcularTotalApresentacao(apre, pecas);
+        faturaStr += `   ${getPeca(apre, pecas).nome}: ${formatarMoeda(total)} (${apre.audiencia} assentos)\n`;
+    }
+
+    // Chamadas já estão corretas aqui
+    faturaStr += `Valor total: ${formatarMoeda(calcularTotalFatura(pecas, fatura.apresentacoes))}\n`;
+    faturaStr += `Créditos acumulados: ${calcularTotalCreditos(pecas, fatura.apresentacoes)} \n`;
+    return faturaStr;
 }
 
 // Execução do programa
